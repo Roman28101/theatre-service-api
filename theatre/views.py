@@ -90,7 +90,7 @@ class PlayViewSet(
         if self.action == "list":
             return PlayListSerializer
 
-        if self.action == "reitrieve":
+        if self.action == "retrieve":
             return PlayDetailSerializer
 
         if self.action == "upload_poster":

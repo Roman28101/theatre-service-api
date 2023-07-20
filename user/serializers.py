@@ -4,12 +4,18 @@ from django.utils.translation import gettext as _
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={"input_type": "password"},
+        min_length=5
+    )
 
     class Meta:
         model = get_user_model()
         fields = ("id", "email", "password", "is_staff")
-        read_only_fields = ("is_stuff",)
-        extra_kwargs = {"password": {"write_only": True, "min_length": 5}}
+        read_only_fields = ("is_staff",)
+
 
     def create(self, validated_data):
         return get_user_model().objects.create_user(**validated_data)
@@ -27,7 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AuthTokenSerializer(serializers.Serializer):
     email = serializers.CharField(label=_("Email"))
     password = serializers.CharField(
-        label=_("Password"), style={"input_type":"password"}
+        label=_("Password"), style={"input_type": "password"}
     )
 
     def validate(self, attrs):
