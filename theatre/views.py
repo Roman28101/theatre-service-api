@@ -50,11 +50,6 @@ class TheatreHallViewSet(
     serializer_class = TheatreHallSerializer
 
 
-class PlayPagination(PageNumberPagination):
-    page_size = 5
-    max_page_size = 100
-
-
 class PlayViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -63,7 +58,6 @@ class PlayViewSet(
 ):
     queryset = Play.objects.prefetch_related("genres", "actors")
     serializer_class = PlaySerializer
-    pagination_class = PlayPagination
 
     @staticmethod
     def params_to_int(qs):
