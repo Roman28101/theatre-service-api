@@ -1,6 +1,9 @@
 from datetime import datetime
 
 from django.db.models import F, Count
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, \
+    OpenApiParameter
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
@@ -112,6 +115,30 @@ class PlayViewSet(
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="title",
+                type=str,
+                description="Filter by title (ex. ?title=Nutcracker)"
+            ),
+            OpenApiParameter(
+                name="genres",
+                type={"type": "list",
+                      "items": {"type": "number"}},
+                description="Filter by genre id (ex. ?genres=1,2)"
+            ),
+            OpenApiParameter(
+                name="actors",
+                type={"type": "list",
+                      "items": {"type": "number"}},
+                description="Filter by actor id (ex. ?actors=2,3)"
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class PerformancePagination(PageNumberPagination):
     page_size = 5
@@ -139,11 +166,29 @@ class PerformanceViewSet(viewsets.ModelViewSet):
 
         if date:
             date = datetime.strptime(date, "%Y-%m-%d").date()
+            queryset = queryset.filter(show_time__date=date)
 
         if movie_id:
             queryset = queryset.filter(movie_id=int(movie_id))
 
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="date",
+                type=OpenApiTypes.DATE,
+                description="Filter by date (ex. ?date=2023-04-01)"
+            ),
+            OpenApiParameter(
+                name="play",
+                type={"type": "number"},
+                description="Filter by play id (ex. ?movie=1)"
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == "list":
