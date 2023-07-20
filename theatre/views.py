@@ -1,14 +1,22 @@
-from rest_framework import mixins, status
+from datetime import datetime
+
+from django.db.models import F, Count
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAdminUser, \
+    IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from theatre.models import Actor, Genre, TheatreHall, Play
+from theatre.models import Actor, Genre, TheatreHall, Play, \
+    Performance, Reservation
 from theatre.serializers import ActorSerializer, \
     GenreSerializer, TheatreHallSerializer, PlaySerializer, \
     PlayListSerializer, PlayDetailSerializer, \
-    PlayPosterSerializer
+    PlayPosterSerializer, PerformanceSerializer, \
+    PerformanceListSerializer, PerformanceDetailSerializer, \
+    ReservationSerializer, ReservationListSerializer
 
 
 class ActorViewSet(
@@ -39,6 +47,11 @@ class TheatreHallViewSet(
     serializer_class = TheatreHallSerializer
 
 
+class PlayPagination(PageNumberPagination):
+    page_size = 5
+    max_page_size = 100
+
+
 class PlayViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -47,6 +60,7 @@ class PlayViewSet(
 ):
     queryset = Play.objects.prefetch_related("genres", "actors")
     serializer_class = PlaySerializer
+    pagination_class = PlayPagination
 
     @staticmethod
     def params_to_int(qs):
@@ -97,3 +111,76 @@ class PlayViewSet(
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PerformancePagination(PageNumberPagination):
+    page_size = 5
+    max_page_size = 100
+
+
+class PerformanceViewSet(viewsets.ModelViewSet):
+    queryset = (
+        Performance.objects.select_related("play", "theatre_hall")
+        .annotate(
+            tickets_available=(
+                F("theatre_hall__rows") * F("theatre_hall__seats_in_row")
+                - Count("tickets")
+            )
+        )
+    )
+    serializer_class = PerformanceSerializer
+    pagination_class = PerformancePagination
+
+    def get_queryset(self):
+        date = self.request.query_params.get("date")
+        movie_id = self.request.query_params.get("play")
+
+        queryset = self.queryset
+
+        if date:
+            date = datetime.strptime(date, "%Y-%m-%d").date()
+
+        if movie_id:
+            queryset = queryset.filter(movie_id=int(movie_id))
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PerformanceListSerializer
+
+        if self.action == "retrieve":
+            return PerformanceDetailSerializer
+
+        return PerformanceSerializer
+
+
+class ReservationPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
+class ReservationViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet
+):
+    queryset = Reservation.objects.prefetch_related(
+        "tickets__performance__play",
+        "tickets__performance__theatre_hall"
+    )
+    serializer_class = ReservationSerializer
+    permission_classes = (IsAuthenticated,)
+    pagination_class = ReservationPagination
+
+    def get_queryset(self):
+        return Reservation.objects.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ReservationListSerializer
+
+        return ReservationSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
