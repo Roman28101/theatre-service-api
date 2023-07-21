@@ -134,9 +134,6 @@ class PlayViewSet(
         return super().list(request, *args, **kwargs)
 
 
-class PerformancePagination(PageNumberPagination):
-    page_size = 5
-    max_page_size = 100
 
 
 class PerformanceViewSet(viewsets.ModelViewSet):
@@ -150,11 +147,10 @@ class PerformanceViewSet(viewsets.ModelViewSet):
         )
     )
     serializer_class = PerformanceSerializer
-    pagination_class = PerformancePagination
 
     def get_queryset(self):
         date = self.request.query_params.get("date")
-        movie_id = self.request.query_params.get("play")
+        play_id = self.request.query_params.get("play")
 
         queryset = self.queryset
 
@@ -162,8 +158,8 @@ class PerformanceViewSet(viewsets.ModelViewSet):
             date = datetime.strptime(date, "%Y-%m-%d").date()
             queryset = queryset.filter(show_time__date=date)
 
-        if movie_id:
-            queryset = queryset.filter(movie_id=int(movie_id))
+        if play_id:
+            queryset = queryset.filter(play_id=int(play_id))
 
         return queryset
 
@@ -177,7 +173,7 @@ class PerformanceViewSet(viewsets.ModelViewSet):
             OpenApiParameter(
                 name="play",
                 type={"type": "number"},
-                description="Filter by play id (ex. ?movie=1)"
+                description="Filter by play id (ex. ?play=1)"
             ),
         ]
     )
