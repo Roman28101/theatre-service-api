@@ -2,24 +2,36 @@ from datetime import datetime
 
 from django.db.models import F, Count
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, \
-    OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser, \
-    IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from theatre.models import Actor, Genre, TheatreHall, Play, \
-    Performance, Reservation
-from theatre.serializers import ActorSerializer, \
-    GenreSerializer, TheatreHallSerializer, PlaySerializer, \
-    PlayListSerializer, PlayDetailSerializer, \
-    PlayPosterSerializer, PerformanceSerializer, \
-    PerformanceListSerializer, PerformanceDetailSerializer, \
-    ReservationSerializer, ReservationListSerializer
+from theatre.models import (
+    Actor,
+    Genre,
+    TheatreHall,
+    Play,
+    Performance,
+    Reservation
+)
+from theatre.serializers import (
+    ActorSerializer,
+    GenreSerializer,
+    TheatreHallSerializer,
+    PlaySerializer,
+    PlayListSerializer,
+    PlayDetailSerializer,
+    PlayPosterSerializer,
+    PerformanceSerializer,
+    PerformanceListSerializer,
+    PerformanceDetailSerializer,
+    ReservationSerializer,
+    ReservationListSerializer
+)
 
 
 class ActorViewSet(
@@ -132,8 +144,6 @@ class PlayViewSet(
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-
-
 
 
 class PerformanceViewSet(viewsets.ModelViewSet):
