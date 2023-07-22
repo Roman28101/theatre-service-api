@@ -1,4 +1,4 @@
-# cinema-service-api
+# theatre-service-api
 
 Project of "Theatre service API". For online managing plays and performances in current theater and reserve tickets. Written on Django REST Framework
 
