@@ -19,6 +19,7 @@ platformdirs==3.9.1
 pycodestyle==2.10.0
 pyflakes==3.0.1
 PyJWT==2.8.0
+python-dotenv==1.0.0
 pytz==2023.3
 PyYAML==6.0.1
 referencing==0.30.0
